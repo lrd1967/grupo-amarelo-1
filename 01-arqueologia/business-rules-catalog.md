@@ -37,30 +37,50 @@ O que NÃO conta: paginação de relatório, formatação de saída, manipulaç�
 
 | Nível       | Descrição                                                     |
 | ----------- | ------------------------------------------------------------- |
-| **CRÍTICO** | Regra financeira ou de segurança — erro causa prejuízo direto |
+| **CRÍTICO** | Regra financeira ou de segurança - erro causa prejuízo direto |
 | **ALTO**    | Regra de negócio central — afeta fluxo principal              |
 | **MÉDIO**   | Regra de validação ou formatação — afeta qualidade dos dados  |
 | **BAIXO**   | Regra de apresentação ou conveniência — impacto limitado      |
+
+## Inventário por Programa
+
+| Programa (Autor, Última modificação) | Inputs (DDMs lidas) | Outputs (DDMs escritas) | Cadeia CALLNAT |
+| --- | --- | --- | --- |
+| BATCHCON (Marcos Antonio Ribeiro, 2014) | PAGAMENTO, AUDITORIA | PAGAMENTO (UPDATE), AUDITORIA (STORE) | Nenhuma ocorrência de CALLNAT |
+| BATCHPGT (Carlos Roberto da Silva, 2015) | BENEFICIARIO, PAGAMENTO, PROGRAMA-SOCIAL | PAGAMENTO (STORE) | Nenhuma ocorrência de CALLNAT |
+| BATCHREL (Patricia Gomes de Souza, 2013) | PAGAMENTO, BENEFICIARIO | Nenhuma escrita em DDM | Nenhuma ocorrência de CALLNAT |
+| CADBENEF (Carlos Roberto da Silva, 2011) | BENEFICIARIO | BENEFICIARIO (STORE/UPDATE) | Nenhuma ocorrência de CALLNAT |
+| CADDEPEND (Ana Lucia Pereira, 2008) | BENEFICIARIO | BENEFICIARIO (UPDATE) | Nenhuma ocorrência de CALLNAT |
+| CADPROG (Marcos Antonio Ribeiro, 2012) | PROGRAMA-SOCIAL | PROGRAMA-SOCIAL (STORE) | Nenhuma ocorrência de CALLNAT |
+| CALCBENF (Carlos Roberto da Silva, 2013) | BENEFICIARIO, PAGAMENTO, PROGRAMA-SOCIAL | PAGAMENTO (STORE) | Nenhuma ocorrência de CALLNAT |
+| CALCCORR (Patricia Gomes de Souza, 2014) | PAGAMENTO | PAGAMENTO (UPDATE) | Nenhuma ocorrência de CALLNAT |
+| CALCDSCT (Roberto Mendes Junior, 2015) | PAGAMENTO, BENEFICIARIO | PAGAMENTO (UPDATE) | Nenhuma ocorrência de CALLNAT |
+| CONSBENF (Marcia Helena Oliveira, 2012) | BENEFICIARIO, PAGAMENTO | Nenhuma escrita em DDM | Nenhuma ocorrência de CALLNAT |
+| RELAUDIT (Roberto Mendes Junior, 2014) | AUDITORIA | Nenhuma escrita em DDM | Nenhuma ocorrência de CALLNAT |
+| RELPGT (Ana Lucia Pereira, 2010) | PAGAMENTO, BENEFICIARIO | Nenhuma escrita em DDM | Nenhuma ocorrência de CALLNAT |
+| VALBENEF (Marcia Helena Oliveira, 2010) | BENEFICIARIO (VIEW declarada) | Nenhuma escrita em DDM | Nenhuma ocorrência de CALLNAT |
+| VALDOCS (Ana Lucia Pereira, 2011) | BENEFICIARIO (VIEW declarada) | Nenhuma escrita em DDM | Nenhuma ocorrência de CALLNAT |
+| VALELEG (Jose Ferreira dos Santos, 2013) | BENEFICIARIO, PROGRAMA-SOCIAL | Nenhuma escrita em DDM | Nenhuma ocorrência de CALLNAT |
 
 ## Regras Encontradas
 
 | ID     | Regra de Negócio | Programa Fonte | Campos DDM | Nível de Risco | Notas |
 | ------ | ---------------- | -------------- | ---------- | -------------- | ----- |
-| BR-001 |                  |                |            |                |       |
-| BR-002 |                  |                |            |                |       |
-| BR-003 |                  |                |            |                |       |
-| BR-004 |                  |                |            |                |       |
-| BR-005 |                  |                |            |                |       |
-| BR-006 |                  |                |            |                |       |
-| BR-007 |                  |                |            |                |       |
-| BR-008 |                  |                |            |                |       |
-| BR-009 |                  |                |            |                |       |
-| BR-010 |                  |                |            |                |       |
-| BR-011 |                  |                |            |                |       |
-| BR-012 |                  |                |            |                |       |
-| BR-013 |                  |                |            |                |       |
-| BR-014 |                  |                |            |                |       |
-| BR-015 |                  |                |            |                |       |
+| BR-001 | Conciliacao aplica status de pagamento conforme codigo de retorno bancario (00 pago, 01 devolvido, 02 estornado). | [BATCHCON.NSN L171-L194](legado-sifap/natural-programs/BATCHCON.NSN#L171-L194) | PAGAMENTO.STATUS-PGTO, PAGAMENTO.COD-RETORNO | ALTO | Regra central de baixa/retorno CNAB. |
+| BR-002 | Apenas beneficiarios ativos e programas ativos entram no lote de geracao. | [BATCHPGT.NSN L195-L198](legado-sifap/natural-programs/BATCHPGT.NSN#L195-L198), [BATCHPGT.NSN L227-L230](legado-sifap/natural-programs/BATCHPGT.NSN#L227-L230) | BENEFICIARIO.STATUS, PROGRAMA-SOCIAL.STATUS-PROG | ALTO | Filtra elegibilidade operacional do batch mensal. |
+| BR-003 | Faixas de COD-REGIAO determinam macro-regiao para sumarizacao do relatorio. | [BATCHREL.NSN L117-L132](legado-sifap/natural-programs/BATCHREL.NSN#L117-L132) | BENEFICIARIO.COD-REGIAO | MÉDIO | Regras: 1-5, 6-10, 11-15, 16-20, demais. |
+| BR-004 | Beneficiario com idade acima de 75 recebe status suspenso no cadastro. | [CADBENEF.NSN L166-L168](legado-sifap/natural-programs/CADBENEF.NSN#L166-L168) | BENEFICIARIO.DT-NASCIMENTO, BENEFICIARIO.STATUS | ALTO | Ajuste explicitado no historico de alteracoes. |
+| BR-005 | Inclusao de dependentes bloqueia quando atinge limite maximo permitido. | [CADDEPEND.NSN L63-L65](legado-sifap/natural-programs/CADDEPEND.NSN#L63-L65) | BENEFICIARIO.NUM-DEPENDENTES, BENEFICIARIO.DEPENDENTES | ALTO | Evita extrapolar capacidade do grupo PE. |
+| BR-006 | Operacao de cadastro de programa aceita apenas I (inclusao) ou C (consulta). | [CADPROG.NSN L50-L53](legado-sifap/natural-programs/CADPROG.NSN#L50-L53) | PROGRAMA-SOCIAL.COD-PROGRAMA | MÉDIO | Entrada fora do dominio encerra a rotina. |
+| BR-007 | Calculo de beneficio bloqueia beneficiario nao ativo antes de gerar pagamento. | [CALCBENF.NSN L160-L161](legado-sifap/natural-programs/CALCBENF.NSN#L160-L161) | BENEFICIARIO.STATUS, PAGAMENTO.STATUS-PGTO | ALTO | Nao gera parcela para status diferente de A. |
+| BR-008 | Correcao monetaria multiplica indice acumulado com a serie IPCA mensal. | [CALCCORR.NSN L54-L68](legado-sifap/natural-programs/CALCCORR.NSN#L54-L68), [CALCCORR.NSN L185-L185](legado-sifap/natural-programs/CALCCORR.NSN#L185) | PAGAMENTO.VLR-BRUTO, PAGAMENTO.VLR-LIQUIDO | CRÍTICO | Regra financeira com impacto direto em valor corrigido. |
+| BR-009 | Total de descontos e limitado a 30% do bruto, exceto tipo judicial. | [CALCDSCT.NSN L101-L105](legado-sifap/natural-programs/CALCDSCT.NSN#L101-L105), [CALCDSCT.NSN L164-L167](legado-sifap/natural-programs/CALCDSCT.NSN#L164-L167) | PAGAMENTO.VLR-BRUTO, PAGAMENTO.VLR-DESCONTO, BENEFICIARIO.TIPO-DSCT | CRÍTICO | Teto financeiro explicito na rotina. |
+| BR-010 | Consulta assume busca por CPF quando tipo de busca vem em branco. | [CONSBENF.NSN L80-L81](legado-sifap/natural-programs/CONSBENF.NSN#L80-L81) | BENEFICIARIO.CPF, BENEFICIARIO.NIS | MÉDIO | Default funcional da tela de consulta. |
+| BR-011 | Relatorio de auditoria aplica filtros opcionais de acao, usuario e tabela. | [RELAUDIT.NSN L111-L128](legado-sifap/natural-programs/RELAUDIT.NSN#L111-L128) | AUDITORIA.ACAO, AUDITORIA.USUARIO, AUDITORIA.TABELA-REF | MÉDIO | Regra de selecao de eventos para exibicao. |
+| BR-012 | Relatorio de pagamentos filtra programa quando COD-PROG-FILTRO for diferente de zero. | [RELPGT.NSN L87-L88](legado-sifap/natural-programs/RELPGT.NSN#L87-L88) | PAGAMENTO.COD-PROGRAMA | MÉDIO | Valor 0 significa todos os programas. |
+| BR-013 | Validacao cadastral aceita apenas status A, S, C, I ou D. | [VALBENEF.NSN L164-L167](legado-sifap/natural-programs/VALBENEF.NSN#L164-L167) | BENEFICIARIO.STATUS | ALTO | Fora do dominio gera erro de validacao. |
+| BR-014 | Validacao documental incrementa contador de erros quando CPF e invalido. | [VALDOCS.NSN L68-L71](legado-sifap/natural-programs/VALDOCS.NSN#L68-L71) | BENEFICIARIO.CPF | MÉDIO | Compõe resultado final de consistencia documental. |
+| BR-015 | Regiao especial 99 marca beneficiario como elegivel imediatamente. | [VALELEG.NSN L105-L109](legado-sifap/natural-programs/VALELEG.NSN#L105-L109) | BENEFICIARIO.COD-REGIAO, BENEFICIARIO.STATUS | ALTO | Excecao explicita para internacional/diplomatico. |
 
 > Adicione mais linhas conforme necessário. Lembre-se: existem **10 regras escondidas** no código!
 
@@ -74,26 +94,31 @@ O que NÃO conta: paginação de relatório, formatação de saída, manipulaç�
 
 ### Cálculos Financeiros
 
-<!-- Liste aqui as regras relacionadas a cálculos de valores, benefícios, etc. -->
+- BR-008 (correcao por IPCA)
+- BR-009 (teto de descontos)
 
 ### Validações de Status
 
-<!-- Liste aqui as regras de transição de status (A, S, C, I, D) -->
+- BR-001 (status de pagamento por retorno bancario)
+- BR-004 (status de idoso)
+- BR-007 (bloqueio para nao ativos)
+- BR-013 (dominio valido de status)
 
 ### Regras de Autorização
 
-<!-- Liste aqui as regras de quem pode fazer o quê -->
+- BR-011 (filtros de auditoria para consulta de eventos)
 
 ### Regras de Negócio Temporais
 
-<!-- Liste aqui regras com prazos, datas-limite, períodos -->
+- BR-002 (geracao por lote mensal com filtros de status)
+- BR-012 (filtro por programa no periodo do relatorio)
 
 ## Resumo Estatístico
 
-- Total de regras encontradas: \_\_\_
-- Regras críticas: \_\_\_
-- Regras com duplicação: \_\_\_
-- Regras sem documentação (escondidas): \_\_\_
+- Total de regras encontradas: 15
+- Regras críticas: 2
+- Regras com duplicação: 1 (controle de status em BATCHPGT, CALCBENF e VALBENEF)
+- Regras sem documentação (escondidas): 3 (regiao 99, teto 30%, excecao tipo judicial)
 
 ---
 
