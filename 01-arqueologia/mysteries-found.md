@@ -240,6 +240,18 @@ WRITE 'RESUMO POR STATUS'
 2. [x] Easter Egg 2: VALDOCS.NSN (subrotina CHECK-DOC-ESPECIAL) aceita documentos por prefixos especiais (governo/teste) e força resultado válido sem validação completa.
 3. [x] Easter Egg 3: Código morto em BATCHCON referencia integração descontinuada com o Banco Real (empresa incorporada pelo Santander).
 
+## Bônus
+
+1. INC-001 - limite documentado diverge do que o código permite.
+O manual técnico diz que o campo BN-QT-DEPEND aceita valores de 0 a 3 e que o máximo por titular é 3 dependentes (MANUAL-TECNICO-SIFAP-2008.md:243, MANUAL-TECNICO-SIFAP-2008.md:261). No código, porém, o cadastro de dependentes só bloqueia quando #NUM-DEP > 5 (CADDEPEND.NSN:63). Na prática, o sistema passou a aceitar até 5 dependentes, então a documentação ficou defasada.
+1. INC-002 - a arquitetura original não menciona uma estrutura de dados que entrou depois.
+O documento de arquitetura original lista apenas 3 DDMs principais - BENEFICIARIO, PROGRAMA-SOCIAL e PAGAMENTO (ARQUITETURA-ORIGINAL-1997.md:162). O próprio documento admite, em nota, que o DDM AUDITORIA (FNR 153) foi adicionado depois, em 2005, e não fazia parte da redação original (ARQUITETURA-ORIGINAL-1997.md:207, ARQUITETURA-ORIGINAL-1997.md:210). O código confirma a existência dessa estrutura, por exemplo em AUDITORIA-V VIEW OF AUDITORIA no BATCHCON (BATCHCON.NSN:28). Isso é menos uma contradição e mais um caso clássico de evolução não refletida na arquitetura inicial.
+1. INC-003 - regras críticas de cálculo não aparecem de forma operacional nos documentos.
+O levantamento parcial de regras admite explicitamente que o cálculo do 13o benefício, o fator K, o pro rata e o bypass por região 99 não foram totalmente documentados (REGRAS-NEGOCIO-2012.md:245, REGRAS-NEGOCIO-2012.md:250, REGRAS-NEGOCIO-2012.md:290). O manual técnico também deixa o cálculo do 13o como “a completar” (MANUAL-TECNICO-SIFAP-2008.md:298). Já o código implementa regra concreta e crítica: cálculo do benefício com múltiplos fatores, truncamento em centavos, 13o em dezembro e abono natalino de 15% para programa tipo A (CALCBENF.NSN:231, CALCBENF.NSN:239, CALCBENF.NSN:250). Para correção monetária, o código ainda mantém a série mensal de IPCA e a lógica de acumulação, que não aparece descrita operacionalmente nos docs (CALCCORR.NSN:57, CALCCORR.NSN:185). Aqui a inconsistência é principalmente documental, mas afeta diretamente valores pagos.
+1. INC-004 - dois programas usam métodos diferentes de arredondamento para o mesmo tipo de valor.
+A regra documental diz que o valor do benefício deve ser sempre arredondado para baixo em centavos, isto é, truncado (REGRAS-NEGOCIO-2012.md:126). O CALCBENF segue esse comportamento com truncamento puro (* 100 e depois / 100) (CALCBENF.NSN:231, CALCBENF.NSN:233). Já o BATCHREL faz algo diferente: soma 0.005 antes de truncar e ainda registra que o arredondamento difere do CALCBENF (BATCHREL.NSN:136, BATCHREL.NSN:137). Isso pode gerar diferença de 1 centavo entre cálculo e relatório para o mesmo valor monetário.
+ 
+
 ## Resumo
 
 - Total de mistérios encontrados: 10
