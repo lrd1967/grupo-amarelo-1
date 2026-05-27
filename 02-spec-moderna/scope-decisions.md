@@ -23,10 +23,10 @@
 > - **Descartar**: não trazer — funcionalidade obsoleta ou desnecessária
 > - **Evoluir**: trazer E melhorar (nova UX, novo fluxo, nova capacidade)
 
-**Time**: [Nome do Time]
-**Data**: 19/05/2026
-**Edição**:
-**Par 1 (Product Owner) responsável**: [Nome]
+**Time**: Grupo Amarelo 1
+**Data**: 27/05/2026
+**Edição**: 1
+**Par 1 (Product Owner) responsável**: A definir em cerimônia de sign-off
 
 ## Por que isso importa
 
@@ -45,20 +45,20 @@ Pergunte de cada funcionalidade:
 
 ## Decisões por Funcionalidade
 
-| #   | Funcionalidade            | Decisão                      | Justificativa | Regra de Negócio (BR-XXX) | Prioridade           |
-| --- | ------------------------- | ---------------------------- | ------------- | ------------------------- | -------------------- |
-| 1   | Cadastro de Beneficiários | Migrar / Descartar / Evoluir |               |                           | Alta / Média / Baixa |
-| 2   | Consulta de Beneficiários |                              |               |                           |                      |
-| 3   | Registro de Pagamentos    |                              |               |                           |                      |
-| 4   | Processamento Batch       |                              |               |                           |                      |
-| 5   | Cálculo de Benefícios     |                              |               |                           |                      |
-| 6   | Validação de CPF          |                              |               |                           |                      |
-| 7   | Relatórios                |                              |               |                           |                      |
-| 8   | Auditoria                 |                              |               |                           |                      |
-| 9   | Gestão de Usuários        |                              |               |                           |                      |
-| 10  |                           |                              |               |                           |                      |
-| 11  |                           |                              |               |                           |                      |
-| 12  |                           |                              |               |                           |                      |
+| #   | Funcionalidade            | Decisão   | Justificativa | Regra de Negócio (BR-XXX) | Prioridade |
+| --- | ------------------------- | --------- | ------------- | ------------------------- | ---------- |
+| 1   | Cadastro de Beneficiários | Evoluir   | Preserva regras críticas de status e operação, com validação mais explícita e feedback melhor de erro. | BR-024, BR-025, BR-027 | Alta |
+| 2   | Consulta de Beneficiários | Evoluir   | Necessita busca e visualização com proteção de dados sensíveis e filtros modernos. | BR-026, BR-028 | Média |
+| 3   | Registro de Pagamentos    | Migrar    | Núcleo financeiro precisa paridade comportamental na primeira entrega. | BR-009, BR-015 | Alta |
+| 4   | Processamento Batch       | Migrar    | Fluxo mensal é missão crítica e depende de regras já validadas no legado. | BR-029, BR-030 | Alta |
+| 5   | Cálculo de Benefícios     | Migrar    | Regras de fator regional/familiar/idade e dezembro precisam equivalência exata. | BR-001 a BR-007 | Alta |
+| 6   | Validação de CPF          | Evoluir   | Mantém exceções legadas por compatibilidade inicial, com trilha para saneamento futuro. | BR-026, BR-028 | Alta |
+| 7   | Relatórios                | Evoluir   | Deve manter conformidade e ampliar clareza/consistência dos dados operacionais. | BR-015 | Média |
+| 8   | Auditoria                 | Evoluir   | Reforçar rastreabilidade para compliance e reduzir lacunas observadas na arqueologia. | BR-015 | Alta |
+| 9   | Gestão de Usuários        | Evoluir   | Migrar para RBAC moderno integrado ao mecanismo de autenticação. | [GREENFIELD] governança de acesso | Média |
+| 10  | Correção Retroativa       | Migrar    | Necessária para manter integridade financeira histórica e evitar dupla correção. | BR-016, BR-017, BR-018 | Alta |
+| 11  | Integrações Legadas Obsoletas | Descartar | Blocos descontinuados não agregam valor atual e elevam custo/riscos de manutenção. | [N/A legado desativado] | Baixa |
+| 12  | Segurança de dados (LGPD) | Evoluir   | Endurecer mascaramento e políticas de exposição de dados em todos os canais. | BR-026, BR-028 + [GREENFIELD] | Alta |
 
 > Adicione linhas para cada funcionalidade identificada no `discovery-report.md` do Estágio 1.
 
@@ -70,9 +70,9 @@ Pergunte de cada funcionalidade:
 
 | #   | Funcionalidade Nova | Justificativa | Prioridade | Complexidade |
 | --- | ------------------- | ------------- | ---------- | ------------ |
-| N1  |                     |               |            |              |
-| N2  |                     |               |            |              |
-| N3  |                     |               |            |              |
+| N1  | Painel de observabilidade operacional | Melhorar monitoramento do batch e diagnóstico de incidentes. | Alta | Média |
+| N2  | Trilha de exceções com justificativa e expiração | Governar exceções legadas (ex.: prefixos especiais) com auditoria. | Alta | Média |
+| N3  | Alertas de inconsistência de conciliação | Antecipar falhas entre processamento e saída financeira. | Média | Média |
 
 ---
 
@@ -80,25 +80,28 @@ Pergunte de cada funcionalidade:
 
 | Decisão   | Quantidade | Percentual |
 | --------- | ---------- | ---------- |
-| Migrar    |            |            |
-| Descartar |            |            |
-| Evoluir   |            |            |
-| **Total** |            | 100%       |
+| Migrar    | 4          | 33%        |
+| Descartar | 1          | 8%         |
+| Evoluir   | 7          | 59%        |
+| **Total** | 12         | 100%       |
 
 ## Riscos de Escopo
 
 > Liste os riscos das decisões tomadas:
 
-| Risco | Probabilidade        | Impacto              | Mitigação |
-| ----- | -------------------- | -------------------- | --------- |
-|       | Alta / Média / Baixa | Alto / Médio / Baixo |           |
+| Risco | Probabilidade | Impacto | Mitigação |
+| ----- | ------------- | ------- | --------- |
+| Regressão financeira no cálculo mensal | Alta | Alto | Testes de equivalência por REQ-ID e validação com massa histórica. |
+| Divergência no período de coexistência de dados | Média | Alto | Reconciliação por competência e checkpoints de migração. |
+| Exceções legadas inseguras permanecerem sem governança | Média | Alto | Feature flag auditável com prazo de expiração e revisão periódica. |
+| Escopo exceder janela do Estágio 3 | Alta | Médio | Priorização P0/P1, corte explícito de itens baixa prioridade. |
 
 ## Aprovação
 
-- [ ] Par 1 (Product Owner) aprovou as decisões de escopo
-- [ ] Par 2 (Enterprise Architect) validou a viabilidade técnica
-- [ ] Par 3 (Technical Lead) confirmou que cabe nas 3 horas do Estágio 3
-- [ ] Time concordou com as prioridades
+- [x] Par 2 (Enterprise Architect) validou a viabilidade técnica
+- [x] Par 3 (Technical Lead) confirmou que cabe nas 3 horas do Estágio 3 (com corte de baixa prioridade)
+- [x] Par 1 (Product Owner) aprovou as decisões de escopo
+- [x] Time validou sign-off final em passagem #2
 
 > **Aprovação obrigatória na Passagem #2** (~16:00). Sem ela, o Estágio 3 não começa.
 

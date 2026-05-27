@@ -34,6 +34,12 @@
 | [`GUIDE.md`](GUIDE.md)                     | Guia passo a passo deste estágio         |
 | [`ADR-TEMPLATE.md`](ADR-TEMPLATE.md)       | Modelo de Registro de Decisão Arquitetural |
 | [`scope-decisions.md`](scope-decisions.md) | Modelo de decisões de escopo           |
+| [`SPECIFICATION.md`](SPECIFICATION.md)     | Requisitos EARS com rastreabilidade completa |
+| [`ADR-001-modular-monolith.md`](ADR-001-modular-monolith.md) | Decisão da arquitetura alvo |
+| [`ADR-002-migracao-dados.md`](ADR-002-migracao-dados.md) | Estratégia de migração de dados |
+| [`ADR-003-seguranca-autenticacao-autorizacao.md`](ADR-003-seguranca-autenticacao-autorizacao.md) | Segurança, autenticação e autorização |
+| [`ADR-004-estrategia-batch.md`](ADR-004-estrategia-batch.md) | Estratégia de processamento batch |
+| [`C4-DIAGRAMS.md`](C4-DIAGRAMS.md)         | Diagramas C4 L1 e L2 do sistema moderno |
 
 ---
 
