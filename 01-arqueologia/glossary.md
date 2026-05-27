@@ -41,36 +41,36 @@ Prompt útil no Copilot Chat (cole o conteúdo de 2–3 arquivos `.NSN` no chat 
 
 | #   | Termo | Expansão | Programa | Contexto |
 | --- | ----- | -------- | -------- | -------- |
-| 1   |       |          |          |          |
-| 2   |       |          |          |          |
-| 3   |       |          |          |          |
-| 4   |       |          |          |          |
-| 5   |       |          |          |          |
-| 6   |       |          |          |          |
-| 7   |       |          |          |          |
-| 8   |       |          |          |          |
-| 9   |       |          |          |          |
-| 10  |       |          |          |          |
-| 11  |       |          |          |          |
-| 12  |       |          |          |          |
-| 13  |       |          |          |          |
-| 14  |       |          |          |          |
-| 15  |       |          |          |          |
-| 16  |       |          |          |          |
-| 17  |       |          |          |          |
-| 18  |       |          |          |          |
-| 19  |       |          |          |          |
-| 20  |       |          |          |          |
-| 21  |       |          |          |          |
-| 22  |       |          |          |          |
-| 23  |       |          |          |          |
-| 24  |       |          |          |          |
-| 25  |       |          |          |          |
-| 26  |       |          |          |          |
-| 27  |       |          |          |          |
-| 28  |       |          |          |          |
-| 29  |       |          |          |          |
-| 30  |       |          |          |          |
+| 1   | `CPF` | Cadastro de Pessoa Fisica | `CADBENEF.NSN`, `CONSBENF.NSN`, `VALBENEF.NSN`, `VALDOCS.NSN` | Identificador principal do beneficiario; validacao modulo 11. |
+| 2   | `NIS` | Numero de Identificacao Social | `CADBENEF.NSN`, `CONSBENF.NSN`, `VALELEG.NSN` | Chave de elegibilidade; em regra `R` nao pode ser zero. |
+| 3   | `STATUS` | Situacao cadastral do beneficiario | `CADBENEF.NSN`, `CONSBENF.NSN`, `VALBENEF.NSN`, `VALELEG.NSN` | Dominio: `A,S,C,I,D` (ativo, suspenso, cancelado, inativo, desligado). |
+| 4   | `COD-PROGRAMA` | Codigo do programa social | `BATCHPGT.NSN`, `CADPROG.NSN`, `RELPGT.NSN`, `VALELEG.NSN` | Chave numerica do programa vinculado ao beneficiario/pagamento. |
+| 5   | `NOME` | Nome do beneficiario | `CADBENEF.NSN`, `CONSBENF.NSN` | Nome civil exibido em consulta e relatorios. |
+| 6   | `DT-NASCIMENTO` | Data de nascimento | `CADBENEF.NSN`, `CONSBENF.NSN`, `CALCBENF.NSN` | Base para idade e regras de elegibilidade. |
+| 7   | `SEXO` | Sexo cadastral | `CADBENEF.NSN`, `CADDEPEND.NSN` | Campo de caracter unico em beneficiario/dependente. |
+| 8   | `UF` | Unidade Federativa | `CADBENEF.NSN`, `CONSBENF.NSN`, `VALBENEF.NSN` | Sigla do estado; validada contra tabela de 27 UFs. |
+| 9   | `CEP` | Codigo de Enderecamento Postal | `CADBENEF.NSN`, `CONSBENF.NSN` | CEP residencial do beneficiario. |
+| 10  | `RG` | Registro Geral | `CADBENEF.NSN`, `VALDOCS.NSN` | Documento de identificacao civil. |
+| 11  | `RENDA-FAMILIAR` | Renda familiar informada | `CADBENEF.NSN`, `CALCBENF.NSN`, `VALELEG.NSN` | Usada em calculo do beneficio e criterio de elegibilidade. |
+| 12  | `NUM-DEPENDENTES` | Quantidade de dependentes | `CADBENEF.NSN`, `CADDEPEND.NSN`, `VALELEG.NSN` | Contador de dependentes vinculados ao titular. |
+| 13  | `DEPENDENTES` | Grupo periodico de dependentes | `CADDEPEND.NSN` | Estrutura `PE` com repeticao de dados de dependente. |
+| 14  | `PARENTESCO` | Relacao com titular | `CADDEPEND.NSN` | Dominio: `FI` filho, `CO` conjuge, `IR` irmao. |
+| 15  | `CPF-DEP` | CPF do dependente | `CADDEPEND.NSN` | CPF do membro dependente no grupo repetitivo. |
+| 16  | `COD-REGIAO` | Codigo geografico de regiao | `CADBENEF.NSN`, `CALCBENF.NSN`, `BATCHREL.NSN` | Influencia fator regional de calculo e sumarizacao. |
+| 17  | `TIPO` | Tipo do programa | `CADPROG.NSN`, `CALCBENF.NSN`, `VALELEG.NSN` | Dominio: `A` assistencial, `P` previdenciario, `T` trabalho. |
+| 18  | `COD-ELEGIBILIDADE` | Codigo de regras especificas | `CADPROG.NSN`, `VALELEG.NSN` | `R` exige NIS valido; `D` exige dependentes. |
+| 19  | `STATUS-PROG` | Situacao do programa social | `CADPROG.NSN`, `BATCHPGT.NSN`, `VALELEG.NSN` | `A` ativo (uso explicito para liberacao de processamento). |
+| 20  | `NUM-PAGTO` | Numero do pagamento | `BATCHCON.NSN`, `CALCDSCT.NSN`, `RELPGT.NSN` | Identificador da parcela gerada no ciclo. |
+| 21  | `COMPETENCIA` | Referencia ano/mes | `CALCBENF.NSN`, `BATCHPGT.NSN`, `RELPGT.NSN` | Formato `AAAAMM` para processamento mensal. |
+| 22  | `VLR-BRUTO` | Valor bruto do beneficio | `CALCBENF.NSN`, `BATCHREL.NSN`, `RELPGT.NSN` | Base para calculo de descontos e relatorios. |
+| 23  | `VLR-DESCONTO` | Total de descontos aplicados | `CALCBENF.NSN`, `CALCDSCT.NSN`, `RELPGT.NSN` | Teto de 30% do bruto, exceto desconto judicial. |
+| 24  | `VLR-LIQUIDO` | Valor liquido a pagar | `BATCHCON.NSN`, `CALCBENF.NSN`, `RELPGT.NSN` | Resultado final apos descontos e ajustes. |
+| 25  | `TIPO-PGTO` | Tipo de pagamento | `CALCBENF.NSN`, `BATCHPGT.NSN`, `RELPGT.NSN` | Dominio: `N` normal, `D` decimo, `T` terceiro. |
+| 26  | `STATUS-PGTO` | Status operacional do pagamento | `BATCHCON.NSN`, `BATCHREL.NSN`, `RELPGT.NSN` | Dominio: `G` gerado, `P` pago, `C` cancelado, `D` devolvido, `E` estornado. |
+| 27  | `COD-RETORNO` | Codigo de retorno bancario CNAB | `BATCHCON.NSN` | Dominio: `00` pago, `01` devolvido, `02` estornado. |
+| 28  | `TIPO-DSCT` | Tipo de desconto cadastrado | `CALCDSCT.NSN` | Dominio: `C` contribuicao, `I` imposto, `J` judicial, `S` sindical, `P` pensao, `A` administrativo. |
+| 29  | `ACAO` | Tipo de evento de auditoria | `BATCHCON.NSN`, `RELAUDIT.NSN` | Dominio: `IN`, `AL`, `CO`, `CN`, `DV`. |
+| 30  | `TIPO-BUSCA` | Modo de consulta do beneficiario | `CONSBENF.NSN` | Dominio: `C` por CPF, `N` por NIS. |
 
 > Adicione mais linhas conforme necessário. Não se limite a 30!
 
