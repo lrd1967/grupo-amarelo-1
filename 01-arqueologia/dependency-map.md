@@ -28,46 +28,77 @@
 
 ## Diagrama de Dependências entre Programas
 
-> Substitua o exemplo abaixo pelo mapa real do seu time. **Meta:** cobrir todos os 15 programas, sem órfãos.
+> Mapa consolidado dos 15 programas `.NSN` e 4 DDMs reais do legado SIFAP.
+> Evidência: varredura por `CALLNAT|CALL|FETCH|RUN` e operações `READ|FIND|STORE|UPDATE|DELETE` em `natural-programs/*.NSN`.
 
 ```mermaid
 flowchart TD
- subgraph "Programas Online"
- CADBENF["CADBENF.NSN<br/>Cadastro de Beneficiários"]
- CONBENF["CONBENF.NSN<br/>Consulta de Beneficiários"]
- REGPGTO["REGPGTO.NSN<br/>Registro de Pagamentos"]
+ subgraph "Cadastros e Consulta (Online)"
+ CADBENEF["CADBENEF.NSN"]
+ CADDEPEND["CADDEPEND.NSN"]
+ CADPROG["CADPROG.NSN"]
+ CONSBENF["CONSBENF.NSN"]
  end
 
- subgraph "Programas Batch"
- BATCHPGT["BATCHPGT.NSN<br/>Processamento em Lote"]
+ subgraph "Validações"
+ VALBENEF["VALBENEF.NSN"]
+ VALDOCS["VALDOCS.NSN"]
+ VALELEG["VALELEG.NSN"]
  end
 
- subgraph "Subprogramas"
- CALCBENF["CALCBENF.NSN<br/>Cálculo de Benefícios"]
- VALCPF["VALCPF.NSN<br/>Validação de CPF"]
+ subgraph "Cálculo"
+ CALCBENF["CALCBENF.NSN"]
+ CALCCORR["CALCCORR.NSN"]
+ CALCDSCT["CALCDSCT.NSN"]
+ end
+
+ subgraph "Batch e Relatórios"
+ BATCHPGT["BATCHPGT.NSN"]
+ BATCHCON["BATCHCON.NSN"]
+ BATCHREL["BATCHREL.NSN"]
+ RELPGT["RELPGT.NSN"]
+ RELAUDIT["RELAUDIT.NSN"]
  end
 
  subgraph "DDMs Adabas"
- DDM_BENEF[("DDM: BENEFICIARIO")]
- DDM_PGTO[("DDM: PAGAMENTO")]
+ BENEF[("BENEFICIARIO")]
+ PAG[("PAGAMENTO")]
+ PROG[("PROGRAMA-SOCIAL")]
+ AUD[("AUDITORIA")]
  end
 
- CADBENF -->|CALLNAT| VALCPF
- CADBENF -->|CALLNAT| CALCBENF
- CADBENF -->|READ/STORE| DDM_BENEF
+ CADBENEF -->|FIND/STORE/UPDATE| BENEF
+ CADDEPEND -->|FIND/UPDATE| BENEF
+ CADPROG -->|FIND/STORE| PROG
+ CONSBENF -->|FIND| BENEF
+ CONSBENF -->|READ| PAG
 
- REGPGTO -->|CALLNAT| CALCBENF
- REGPGTO -->|READ/STORE| DDM_PGTO
+ VALBENEF -->|VIEW ONLY| BENEF
+ VALDOCS -->|VIEW ONLY| BENEF
+ VALELEG -->|FIND| BENEF
+ VALELEG -->|FIND| PROG
 
- CONBENF -->|READ| DDM_BENEF
+ CALCBENF -->|FIND| BENEF
+ CALCBENF -->|FIND| PROG
+ CALCBENF -->|STORE| PAG
+ CALCCORR -->|READ/UPDATE| PAG
+ CALCDSCT -->|FIND/UPDATE| PAG
+ CALCDSCT -->|FIND| BENEF
 
- BATCHPGT -->|CALLNAT| CALCBENF
- BATCHPGT -->|READ/UPDATE| DDM_PGTO
- BATCHPGT -->|READ| DDM_BENEF
+ BATCHPGT -->|READ/FIND/STORE| PAG
+ BATCHPGT -->|READ| BENEF
+ BATCHPGT -->|FIND| PROG
+ BATCHCON -->|FIND/UPDATE| PAG
+ BATCHCON -->|READ/STORE| AUD
+ BATCHREL -->|READ| PAG
+ BATCHREL -->|FIND| BENEF
+ RELPGT -->|READ| PAG
+ RELPGT -->|FIND| BENEF
+ RELAUDIT -->|READ| AUD
 ```
 
-> **Instrução:** este é apenas um exemplo inicial com 6 programas.
-> Seu time deve mapear **todos os 15 programas** e os **4 DDMs**.
+> **Resultado da varredura:** não foram encontradas chamadas `CALLNAT` entre os 15 programas.
+> As dependências do legado estão concentradas em acesso compartilhado aos DDMs e rotinas internas via `PERFORM`.
 
 ## Diagrama de Fluxo de Dados (DDMs)
 
@@ -75,61 +106,78 @@ flowchart TD
 flowchart LR
  subgraph "Entrada de Dados"
  UI["Terminal 3270"]
- BATCH["Arquivos Batch"]
+ CNAB["Arquivo CNAB (WORK FILE)"]
  end
 
- subgraph "Processamento"
- PROG["Programas Natural"]
+ subgraph "Processamento Natural"
+ ONLINE["Cadastro/Consulta/Validação"]
+ CALC["Cálculos de Benefício"]
+ BATCH["Jobs Batch"]
+ REL["Relatórios"]
  end
 
  subgraph "Armazenamento (Adabas)"
  DDM1[("BENEFICIARIO")]
  DDM2[("PAGAMENTO")]
- DDM3[("DDM 3: ???")]
- DDM4[("DDM 4: ???")]
+ DDM3[("PROGRAMA-SOCIAL")]
+ DDM4[("AUDITORIA")]
  end
 
- UI --> PROG
- BATCH --> PROG
- PROG <--> DDM1
- PROG <--> DDM2
- PROG <--> DDM3
- PROG <--> DDM4
+ UI --> ONLINE
+ CNAB --> BATCH
+ ONLINE --> CALC
+ CALC --> BATCH
+ BATCH --> REL
+
+ ONLINE <--> DDM1
+ ONLINE <--> DDM3
+ CALC <--> DDM1
+ CALC <--> DDM2
+ CALC <--> DDM3
+ BATCH <--> DDM1
+ BATCH <--> DDM2
+ BATCH <--> DDM3
+ BATCH <--> DDM4
+ REL <--> DDM1
+ REL <--> DDM2
+ REL <--> DDM4
 ```
 
-> Substitua "DDM 3: ???" e "DDM 4: ???" pelos nomes reais encontrados em [`../01-arqueologia/legado-sifap/adabas-ddms/`](../01-arqueologia/legado-sifap/adabas-ddms/).
+> DDMs reais identificados em `../01-arqueologia/legado-sifap/adabas-ddms/`: `BENEFICIARIO`, `PAGAMENTO`, `PROGRAMA-SOCIAL`, `AUDITORIA`.
 
 ## Tabela de Dependências
 
 | Programa     | Chama (CALLNAT) | Lê (READ) DDMs | Escreve (STORE/UPDATE) DDMs | Observações |
 | ------------ | --------------- | -------------- | --------------------------- | ----------- |
-| CADBENF.NSN  |                 |                |                             |             |
-| CONBENF.NSN  |                 |                |                             |             |
-| REGPGTO.NSN  |                 |                |                             |             |
-| BATCHPGT.NSN |                 |                |                             |             |
-| CALCBENF.NSN |                 |                |                             |             |
-| VALCPF.NSN   |                 |                |                             |             |
-|              |                 |                |                             |             |
-|              |                 |                |                             |             |
-|              |                 |                |                             |             |
-|              |                 |                |                             |             |
-|              |                 |                |                             |             |
-|              |                 |                |                             |             |
-|              |                 |                |                             |             |
-|              |                 |                |                             |             |
-|              |                 |                |                             |             |
+| BATCHCON.NSN | Nenhum identificado | AUDITORIA, PAGAMENTO | AUDITORIA (STORE), PAGAMENTO (UPDATE) | Conciliação de retorno CNAB e trilha de auditoria. |
+| BATCHPGT.NSN | Nenhum identificado | BENEFICIARIO, PAGAMENTO, PROGRAMA-SOCIAL | PAGAMENTO (STORE) | Geração de pagamentos em lote. |
+| BATCHREL.NSN | Nenhum identificado | BENEFICIARIO, PAGAMENTO | - | Consolidação para saída de relatório batch. |
+| CADBENEF.NSN | Nenhum identificado | BENEFICIARIO | BENEFICIARIO (STORE/UPDATE) | Cadastro e manutenção de beneficiário. |
+| CADDEPEND.NSN | Nenhum identificado | BENEFICIARIO | BENEFICIARIO (UPDATE) | Inclusão/atualização de dependentes no cadastro. |
+| CADPROG.NSN | Nenhum identificado | PROGRAMA-SOCIAL | PROGRAMA-SOCIAL (STORE) | Cadastro de programas sociais. |
+| CALCBENF.NSN | Nenhum identificado | BENEFICIARIO, PROGRAMA-SOCIAL | PAGAMENTO (STORE) | Calcula benefício e persiste pagamento. |
+| CALCCORR.NSN | Nenhum identificado | PAGAMENTO | PAGAMENTO (UPDATE) | Aplica correção monetária em pagamentos. |
+| CALCDSCT.NSN | Nenhum identificado | BENEFICIARIO, PAGAMENTO | PAGAMENTO (UPDATE) | Aplica descontos e atualiza pagamento. |
+| CONSBENF.NSN | Nenhum identificado | BENEFICIARIO, PAGAMENTO | - | Consulta de beneficiário e histórico de pagamentos. |
+| RELAUDIT.NSN | Nenhum identificado | AUDITORIA | - | Emissão de relatório de auditoria. |
+| RELPGT.NSN | Nenhum identificado | BENEFICIARIO, PAGAMENTO | - | Relatório de pagamentos por período. |
+| VALBENEF.NSN | Nenhum identificado | BENEFICIARIO (VIEW) | - | Regras de validação; sem READ/FIND explícito no código. |
+| VALDOCS.NSN | Nenhum identificado | BENEFICIARIO (VIEW) | - | Validação documental; sem READ/FIND explícito no código. |
+| VALELEG.NSN | Nenhum identificado | BENEFICIARIO, PROGRAMA-SOCIAL | - | Validação de elegibilidade por regras de programa. |
 
 ## Dependências Circulares
 
 > Liste aqui qualquer dependência circular encontrada (programa A chama B que chama A):
 
-- Nenhuma encontrada até agora.
+- Nenhuma dependência circular por chamada entre programas (não há `CALLNAT` no conjunto analisado).
 
 ## Programas Órfãos
 
 > Programas que não são chamados por nenhum outro (possíveis pontos de entrada ou código morto):
 
-- A investigar.
+- Como não há `CALLNAT`, todos os 15 programas aparecem como órfãos no grafo de chamadas diretas:
+- `BATCHCON.NSN`, `BATCHPGT.NSN`, `BATCHREL.NSN`, `CADBENEF.NSN`, `CADDEPEND.NSN`, `CADPROG.NSN`, `CALCBENF.NSN`, `CALCCORR.NSN`, `CALCDSCT.NSN`, `CONSBENF.NSN`, `RELAUDIT.NSN`, `RELPGT.NSN`, `VALBENEF.NSN`, `VALDOCS.NSN`, `VALELEG.NSN`.
+- Interpretação: não indica necessariamente código morto; a orquestração pode ocorrer por menu JCL, scheduler batch, transação online ou chamada externa ao código-fonte analisado.
 
 ---
 
