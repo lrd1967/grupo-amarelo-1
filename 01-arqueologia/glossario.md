@@ -1,6 +1,6 @@
 | #   | Termo | Expansão | Programa | Contexto |
 | --- | ----- | -------- | -------- | -------- |
-| 1   |       |          |          |          |
+| 1   | STATUS |          | CADBENEF.NSN | Status do benefíciario. S para maior de 75 anos e A para o status inicial|
 | 2   |       |          |          |          |
 | 3   |       |          |          |          |
 | 4   |       |          |          |          |
