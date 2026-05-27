@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import br.gov.client.sifap.beneficiary.domain.Beneficiary;
@@ -75,6 +76,91 @@ class PaymentServiceTest {
   }
 
   @Test
+  void br001HappyPathShouldAcceptCompetenceWithinRange() {
+    Beneficiary beneficiary = buildBeneficiary(1L, BeneficiaryStatus.A, ProgramType.P, "11111111111", 30, 30, 0);
+    PaymentCalculationRequest request = new PaymentCalculationRequest(
+        1L,
+        1,
+        new BigDecimal("1000.00"),
+        BigDecimal.ZERO,
+        BigDecimal.ZERO,
+        BigDecimal.ZERO
+    );
+
+    when(beneficiaryRepository.findById(1L)).thenReturn(Optional.of(beneficiary));
+    when(paymentRepository.findByBeneficiaryAndCompetenceMonth(beneficiary, 1)).thenReturn(Optional.empty());
+    when(paymentRepository.save(any(Payment.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+    PaymentResponse response = paymentService.calculateAndSave(request);
+
+    assertEquals(1, response.competenceMonth());
+    assertEquals(PaymentType.N, response.paymentType());
+  }
+
+  @Test
+  void br003HappyPathShouldApplyRegionalFactorForRegionWithinRange() {
+    Beneficiary beneficiary = buildBeneficiary(1L, BeneficiaryStatus.A, ProgramType.P, "11111111111", 30, 10, 0);
+    PaymentCalculationRequest request = new PaymentCalculationRequest(
+        1L,
+        5,
+        new BigDecimal("1000.00"),
+        BigDecimal.ZERO,
+        BigDecimal.ZERO,
+        BigDecimal.ZERO
+    );
+
+    when(beneficiaryRepository.findById(1L)).thenReturn(Optional.of(beneficiary));
+    when(paymentRepository.findByBeneficiaryAndCompetenceMonth(beneficiary, 5)).thenReturn(Optional.empty());
+    when(paymentRepository.save(any(Payment.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+    PaymentResponse response = paymentService.calculateAndSave(request);
+
+    assertEquals(new BigDecimal("1122.00"), response.grossAmount());
+  }
+
+  @Test
+  void br004HappyPathShouldApplyFamilyFactorForMoreThanFourDependents() {
+    Beneficiary beneficiary = buildBeneficiary(1L, BeneficiaryStatus.A, ProgramType.P, "11111111111", 30, 30, 5);
+    PaymentCalculationRequest request = new PaymentCalculationRequest(
+        1L,
+        5,
+        new BigDecimal("1000.00"),
+        BigDecimal.ZERO,
+        BigDecimal.ZERO,
+        BigDecimal.ZERO
+    );
+
+    when(beneficiaryRepository.findById(1L)).thenReturn(Optional.of(beneficiary));
+    when(paymentRepository.findByBeneficiaryAndCompetenceMonth(beneficiary, 5)).thenReturn(Optional.empty());
+    when(paymentRepository.save(any(Payment.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+    PaymentResponse response = paymentService.calculateAndSave(request);
+
+    assertEquals(new BigDecimal("1080.00"), response.grossAmount());
+  }
+
+  @Test
+  void br005HappyPathShouldApplyAgeFactorForAge65OrMore() {
+    Beneficiary beneficiary = buildBeneficiary(1L, BeneficiaryStatus.A, ProgramType.P, "11111111111", 70, 30, 0);
+    PaymentCalculationRequest request = new PaymentCalculationRequest(
+        1L,
+        5,
+        new BigDecimal("1000.00"),
+        BigDecimal.ZERO,
+        BigDecimal.ZERO,
+        BigDecimal.ZERO
+    );
+
+    when(beneficiaryRepository.findById(1L)).thenReturn(Optional.of(beneficiary));
+    when(paymentRepository.findByBeneficiaryAndCompetenceMonth(beneficiary, 5)).thenReturn(Optional.empty());
+    when(paymentRepository.save(any(Payment.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+    PaymentResponse response = paymentService.calculateAndSave(request);
+
+    assertEquals(new BigDecimal("1173.00"), response.grossAmount());
+  }
+
+  @Test
   void calculateAndSaveShouldApplyDecemberBonusAndDeductionCap() {
     Beneficiary beneficiary = buildBeneficiary(1L, BeneficiaryStatus.A, ProgramType.A, "11111111111", 70, 10, 1);
     PaymentCalculationRequest request = new PaymentCalculationRequest(
@@ -102,6 +188,27 @@ class PaymentServiceTest {
     assertEquals(new BigDecimal("495.15"), response.deductionAmount());
     assertEquals(new BigDecimal("998.70"), response.netAmount());
     assertEquals(true, response.corrected());
+  }
+
+  @Test
+  void br015HappyPathShouldPersistCalculatedPayment() {
+    Beneficiary beneficiary = buildBeneficiary(9L, BeneficiaryStatus.A, ProgramType.P, "99999999999", 35, 30, 0);
+    PaymentCalculationRequest request = new PaymentCalculationRequest(
+        9L,
+        6,
+        new BigDecimal("1000.00"),
+        BigDecimal.ZERO,
+        BigDecimal.ZERO,
+        BigDecimal.ZERO
+    );
+
+    when(beneficiaryRepository.findById(9L)).thenReturn(Optional.of(beneficiary));
+    when(paymentRepository.findByBeneficiaryAndCompetenceMonth(beneficiary, 6)).thenReturn(Optional.empty());
+    when(paymentRepository.save(any(Payment.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+    paymentService.calculateAndSave(request);
+
+    verify(paymentRepository).save(any(Payment.class));
   }
 
   @Test
@@ -143,6 +250,20 @@ class PaymentServiceTest {
     assertEquals(1L, responses.getFirst().beneficiaryId());
     assertEquals(PaymentType.N, responses.getFirst().paymentType());
     assertEquals(new BigDecimal("1000.00"), responses.getFirst().netAmount());
+  }
+
+  @Test
+  void br030HappyPathShouldGenerateForActiveNotPaidBeneficiary() {
+    Beneficiary activeNotPaid = buildBeneficiary(6L, BeneficiaryStatus.A, ProgramType.P, "66666666666", 45, 5, 1);
+
+    when(beneficiaryRepository.findAll()).thenReturn(List.of(activeNotPaid));
+    when(paymentRepository.findByBeneficiaryAndCompetenceMonth(eq(activeNotPaid), eq(8))).thenReturn(Optional.empty());
+    when(paymentRepository.saveAll(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+    List<PaymentResponse> responses = paymentService.runBatch(8);
+
+    assertEquals(1, responses.size());
+    assertEquals(6L, responses.getFirst().beneficiaryId());
   }
 
   private Beneficiary buildBeneficiary(

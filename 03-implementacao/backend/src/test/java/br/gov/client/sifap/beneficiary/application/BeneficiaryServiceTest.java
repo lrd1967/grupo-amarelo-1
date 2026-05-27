@@ -75,6 +75,47 @@ class BeneficiaryServiceTest {
   }
 
   @Test
+  void br024HappyPathShouldAcceptOperationA() {
+    BeneficiaryUpsertRequest request = buildRequest("12345678901", "A", LocalDate.now().minusYears(40));
+
+    when(beneficiaryRepository.findByCpf(request.cpf())).thenReturn(Optional.empty());
+    when(beneficiaryRepository.save(any(Beneficiary.class))).thenAnswer(invocation -> {
+      Beneficiary b = invocation.getArgument(0);
+      ReflectionTestUtils.setField(b, "id", 11L);
+      return b;
+    });
+
+    BeneficiaryResponse response = beneficiaryService.upsert(request);
+
+    assertEquals(11L, response.id());
+    assertEquals(BeneficiaryStatus.A, response.status());
+  }
+
+  @Test
+  void br025HappyPathShouldSetInitialStatusAWhenAgeIsAtMost75() {
+    BeneficiaryUpsertRequest request = buildRequest("12345678901", "I", LocalDate.now().minusYears(70));
+
+    when(beneficiaryRepository.findByCpf(request.cpf())).thenReturn(Optional.empty());
+    when(beneficiaryRepository.save(any(Beneficiary.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+    BeneficiaryResponse response = beneficiaryService.upsert(request);
+
+    assertEquals(BeneficiaryStatus.A, response.status());
+  }
+
+  @Test
+  void br026HappyPathShouldAcceptCpfWith000PrefixAsException() {
+    BeneficiaryUpsertRequest request = buildRequest("000ABC12345", "I", LocalDate.now().minusYears(35));
+
+    when(beneficiaryRepository.findByCpf(request.cpf())).thenReturn(Optional.empty());
+    when(beneficiaryRepository.save(any(Beneficiary.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+    BeneficiaryResponse response = beneficiaryService.upsert(request);
+
+    assertEquals("000ABC12345", response.cpf());
+  }
+
+  @Test
   void evaluateEligibilityShouldReturnFalseForProgramAWithIncomeRuleViolation() {
     Beneficiary beneficiary = buildBeneficiary();
     beneficiary.setProgramType(ProgramType.A);
@@ -91,6 +132,68 @@ class BeneficiaryServiceTest {
   void evaluateEligibilityShouldReturnTrueForSpecialRegion() {
     Beneficiary beneficiary = buildBeneficiary();
     beneficiary.setRegionCode(99);
+
+    boolean eligible = beneficiaryService.evaluateEligibility(beneficiary);
+
+    assertTrue(eligible);
+  }
+
+  @Test
+  void br020HappyPathProgramAShouldBeEligibleWhenConstraintsAreSatisfied() {
+    Beneficiary beneficiary = buildBeneficiary();
+    beneficiary.setProgramType(ProgramType.A);
+    beneficiary.setFamilyIncome(new BigDecimal("550.00"));
+    beneficiary.setDependents(2);
+    beneficiary.setDocumentsOk(true);
+    beneficiary.setNis("1234567890123456");
+
+    boolean eligible = beneficiaryService.evaluateEligibility(beneficiary);
+
+    assertTrue(eligible);
+  }
+
+  @Test
+  void br021HappyPathProgramPShouldBeEligibleWithAge60OrMore() {
+    Beneficiary beneficiary = buildBeneficiary();
+    beneficiary.setProgramType(ProgramType.P);
+    beneficiary.setBirthDate(LocalDate.now().minusYears(60));
+
+    boolean eligible = beneficiaryService.evaluateEligibility(beneficiary);
+
+    assertTrue(eligible);
+  }
+
+  @Test
+  void br022HappyPathProgramTShouldBeEligibleWithinAgeRange() {
+    Beneficiary beneficiary = buildBeneficiary();
+    beneficiary.setProgramType(ProgramType.T);
+    beneficiary.setBirthDate(LocalDate.now().minusYears(35));
+
+    boolean eligible = beneficiaryService.evaluateEligibility(beneficiary);
+
+    assertTrue(eligible);
+  }
+
+  @Test
+  void br023HappyPathProgramAShouldBeEligibleWhenSpecialFlagsAreSatisfied() {
+    Beneficiary beneficiary = buildBeneficiary();
+    beneficiary.setProgramType(ProgramType.A);
+    beneficiary.setNis("1234567890123456");
+    beneficiary.setDependents(3);
+
+    boolean eligible = beneficiaryService.evaluateEligibility(beneficiary);
+
+    assertTrue(eligible);
+  }
+
+  @Test
+  void br028HappyPathShouldBypassValidationForCpfPrefix999() {
+    Beneficiary beneficiary = buildBeneficiary();
+    beneficiary.setCpf("99912345678");
+    beneficiary.setDocumentsOk(false);
+    beneficiary.setProgramType(ProgramType.A);
+    beneficiary.setFamilyIncome(new BigDecimal("900.00"));
+    beneficiary.setDependents(0);
 
     boolean eligible = beneficiaryService.evaluateEligibility(beneficiary);
 
