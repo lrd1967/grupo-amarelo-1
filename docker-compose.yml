@@ -1,6 +1,6 @@
 services:
   postgres:
-    image: postgres:16-alpine
+    image: postgres:15-alpine
     container_name: sifap-postgres
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-sifap}
@@ -19,53 +19,58 @@ services:
       - sifap-net
 
   backend:
-    build:
-      context: ./prototype/backend
-      dockerfile: Dockerfile
+    image: maven:3.9.9-eclipse-temurin-21
     container_name: sifap-backend
+    working_dir: /workspace
+    volumes:
+      - ./03-implementacao/backend:/workspace
+      - m2-cache:/root/.m2
+    command: mvn spring-boot:run
     environment:
-      SPRING_PROFILES_ACTIVE: docker
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-sifap}
-      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-sifap}
-      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-sifap_local}
-      SIFAP_JWT_SECRET: ${SIFAP_JWT_SECRET:-docker-dev-secret-min-32-chars-long!!}
+      DB_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-sifap}
+      DB_USER: ${POSTGRES_USER:-sifap}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-sifap_local}
+      DB_DRIVER: org.postgresql.Driver
+      SPRING_FLYWAY_ENABLED: "false"
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
     ports:
       - "8080:8080"
     depends_on:
       postgres:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/actuator/health | grep -q UP || exit 1"]
+      test: ["CMD-SHELL", "bash -c 'exec 3<>/dev/tcp/127.0.0.1/8080'"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 20
+      start_period: 120s
     restart: unless-stopped
     networks:
       - sifap-net
 
   frontend:
-    build:
-      context: ./prototype/frontend
-      dockerfile: Dockerfile
+    image: node:20-alpine
     container_name: sifap-frontend
+    working_dir: /workspace
+    volumes:
+      - ./03-implementacao/frontend:/workspace
+      - node-modules:/workspace/node_modules
+    command: sh -c "npm install && npx ng serve --host 0.0.0.0 --port 4200"
     environment:
-      NEXT_PUBLIC_API_BASE_URL: http://backend:8080
+      API_BASE_URL: http://backend:8080
     ports:
-      - "3001:3000"
+      - "3001:4200"
     depends_on:
       backend:
         condition: service_healthy
-    healthcheck:
-      test: ["CMD-SHELL", "wget --spider http://localhost:3000/ || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
     restart: unless-stopped
     networks:
       - sifap-net
 
 volumes:
   pgdata:
+  m2-cache:
+  node-modules:
 
 networks:
   sifap-net:

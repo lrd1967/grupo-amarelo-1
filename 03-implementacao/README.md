@@ -1,57 +1,49 @@
-<!-- markdownlint-disable MD013 MD025 MD026 MD028 MD029 MD034 MD040 MD051 MD060 -->
+# Implementacao SIFAP Moderno (Java 21 + Angular)
 
-# Estágio 3 — Implementação
+Esta pasta contem uma implementacao funcional baseada na Spec Moderna (02-spec-moderna) e nas regras extraidas do legado em 01-arqueologia.
 
-![ESTÁGIO 03 Implementação](https://img.shields.io/badge/ESTÁGIO-03%20Implementação-7FBA00?style=for-the-badge) ![LIDERA Pares 3 e 4](https://img.shields.io/badge/LIDERA-Pares%203%20e%204-1A1A1A?style=for-the-badge) ![ENTREGÁVEL Código + Testes](https://img.shields.io/badge/ENTREGÁVEL-Código%20+%20Testes-737373?style=for-the-badge)
+## Estrutura
 
+- backend: Spring Boot 3.3 com Java 21, JPA, Flyway e endpoints REST
+- frontend: Angular standalone consumindo a API REST
 
+## Requisitos cobertos no MVP
 
-> 🗺 **Você está aqui:** [Kit PT-BR](../README.md) → **Estágio 3**
+- REQ-CAD-001, REQ-CAD-002
+- REQ-VAL-001, REQ-VAL-002, REQ-VAL-003
+- REQ-ELEG-001..005 (avaliacao de elegibilidade)
+- REQ-PAY-001..007 (calculo base)
+- REQ-DSCT-002, REQ-DSCT-004, REQ-DSCT-006 (descontos e teto)
+- REQ-BATCH-001, REQ-BATCH-002 (lote simplificado)
 
-> **Para quem é isto?** Quem está chegando no estágio de implementação e quer a visão geral.
->
-> **O que você terá ao final desta leitura:**
->
-> 1. Estrutura do protótipo modular (4 módulos × 3 camadas)
-> 2. Stack: Java 21 + Spring Boot 3 + Next.js 15 + PostgreSQL 16
-> 3. Como subir local com `docker compose up`
-> 4. Link direto para o GUIDE com os 5 passos por feature
+## Backend - executar
 
-> Construa o protótipo do SIFAP 2.0 — backend Java 21 + Spring Boot 3, frontend Next.js 15, PostgreSQL 16 — usando o modo Agent do GitHub Copilot.
+1. Entrar na pasta backend:
+	cd 03-implementacao/backend
+2. Rodar app:
+	mvn spring-boot:run
 
-## Onde isso encaixa no SDLC
+A API sobe em http://localhost:8080
 
-![Linha do tempo do dia: pré-evento, 4 estágios e demo, com as três passagens H1, H2, H3](../assets/timeline-stages.svg)
+Endpoints principais:
+- POST /api/v1/beneficiaries
+- GET /api/v1/beneficiaries
+- POST /api/v1/payments/calculate
+- POST /api/v1/payments/batch/{competenceMonth}
+- GET /api/v1/payments
 
-## Quem trabalha aqui
+## Frontend Angular - executar
 
-![Distribuição de personas por par: visão, arquitetura, implementação, qualidade e operações](../assets/personas-team.svg)
+1. Entrar na pasta frontend:
+	cd 03-implementacao/frontend
+2. Instalar dependencias:
+	npm install
+3. Subir app:
+	npm start
 
-## Conteúdo
+A interface sobe em http://localhost:4200
 
-| Arquivo                | Propósito                        |
-| ---------------------- | -------------------------------- |
-| [`GUIDE.md`](GUIDE.md) | Guia passo a passo deste estágio |
+## Observacoes
 
----
-
-### Continuar a leitura
-
-<table width="100%">
-<tr>
-<td width="50%" valign="top" align="left">
-<sub><strong>← ANTERIOR</strong></sub><br/>
-<a href="../02-spec-moderna/README.md"><strong>Estágio 2 — Visão geral</strong></a><br/>
-<sub>Resumo da spec moderna + links para templates ADR.</sub>
-</td>
-<td width="50%" valign="top" align="right">
-<sub><strong>PRÓXIMO →</strong></sub><br/>
-<a href="GUIDE.md"><strong>Estágio 3 — Implementação</strong></a><br/>
-<sub>15:00–16:10 · Java 21 + Spring Boot + Next.js, com testes.</sub>
-</td>
-</tr>
-</table>
-
-<sub>↑ <a href="../README.md">Voltar ao Kit PT-BR</a></sub>
-
-— Paula
+- A migracao inicial de banco esta em backend/src/main/resources/db/migration/V1__init_sifap_modern.sql.
+- A implementacao foi organizada em package-by-feature (beneficiary, payment, shared), seguindo modular monolith.
